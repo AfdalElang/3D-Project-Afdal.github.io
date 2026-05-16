@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎲 Belajar Bangun Ruang 3D</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        /* ================================================================
+           CSS VARIABLES — Palet warna dan variabel desain global
+           ================================================================ */
+        :root {
+            --red:    #FF6B6B;
+            --teal:   #4ECDC4;
+            --yellow: #FFE66D;
+            --purple: #C77DFF;
+            --orange: #FF9F43;
+            --blue:   #74B9FF;
+            --green:  #55EFC4;
+            --pink:   #FD79A8;
+
+            --bg:        #EEF2FF;
+            --card-bg:   #FFFFFF;
+            --text-dark: #2D3561;
+            --text-muted:#636E96;
+
+            --shadow-sm: 0 4px 20px rgba(45,53,97,0.08);
+            --shadow-md: 0 8px 35px rgba(45,53,97,0.13);
+            --shadow-lg: 0 16px 55px rgba(45,53,97,0.2);
+            --radius-sm: 14px;
+            --radius-md: 22px;
+            --radius-lg: 32px;
+            --ease:      cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ================================================================
+           RESET & BASE
+           ================================================================ */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg);
+            color: var(--text-dark);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        h1, h2, h3, h4 { font-family: 'Nunito', sans-serif; }
+        button { font-family: inherit; }
+
+        /* ================================================================
+           NAVIGATION
+           ================================================================ */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            background: rgba(255,255,255,0.94);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 2px 20px rgba(45,53,97,0.10);
+            padding: 10px 20px;
+        }
+        .nav-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .nav-logo {
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 900;
+            color: var(--red);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            user-select: none;
+        }
+        .nav-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+        .nav-btn {
+            padding: 8px 18px;
+            border: none;
+            border-radius: 50px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.25s var(--ease);
+            background: transparent;
+            color: var(--text-muted);
+        }
+        .nav-btn:hover { background: #F0F4FF; color: var(--text-dark); }
+        .nav-btn.active {
+            background: var(--red);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(255,107,107,0.4);
+        }
+
+        /* ================================================================
+           PAGE SECTION MANAGEMENT
+           ================================================================ */
+        .page-section { display: none; animation: fadeUp 0.4s var(--ease) both; }
+        .page-section.active { display: block; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ================================================================
+           COMMON BUTTONS
+           ================================================================ */
+        .btn-primary {
+            padding: 14px 34px;
+            background: linear-gradient(135deg, var(--red), var(--orange));
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s var(--ease);
+            box-shadow: 0 6px 22px rgba(255,107,107,0.38);
+        }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 10px 32px rgba(255,107,107,0.48); }
+
+        .btn-outline {
+            padding: 14px 34px;
+            background: white;
+            color: var(--red);
+            border: 2.5px solid var(--red);
+            border-radius: 50px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s var(--ease);
+        }
+        .btn-outline:hover { background: var(--red); color: white; transform: translateY(-3px); }
+
+        /* ================================================================
+           HOME PAGE — Hero
+           ================================================================ */
+        .hero {
+            min-height: 88vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 70px 20px 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Animated background blobs */
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(0);
+            opacity: 0.13;
+            pointer-events: none;
+        }
+        .blob-1 { width: 340px; height: 340px; background: var(--red);    top: -60px;  left: -80px;  animation: drift 10s ease-in-out infinite; }
+        .blob-2 { width: 260px; height: 260px; background: var(--teal);   top: 15%;    right: -60px; animation: drift 8s  ease-in-out infinite reverse; }
+        .blob-3 { width: 200px; height: 200px; background: var(--yellow); bottom: 10%; left: 10%;    animation: drift 12s ease-in-out infinite 2s; }
+        .blob-4 { width: 300px; height: 300px; background: var(--purple); bottom: -60px; right: 5%;  animation: drift 9s  ease-in-out infinite 1s reverse; }
+
+        @keyframes drift {
+            0%,100% { transform: translate(0,0) scale(1); }
+            33%      { transform: translate(20px,-15px) scale(1.04); }
+            66%      { transform: translate(-15px,10px) scale(0.97); }
+        }
+
+        .hero-content { position: relative; z-index: 1; max-width: 680px; }
+
+        .hero-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--red), var(--orange));
+            color: white;
+            padding: 7px 20px;
+            border-radius: 50px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            margin-bottom: 22px;
+            animation: pulse 2.5s ease-in-out infinite;
+            letter-spacing: 0.3px;
+        }
+        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+        .hero-title {
+            font-size: clamp(2.2rem, 6.5vw, 4rem);
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 18px;
+            background: linear-gradient(135deg, var(--red) 0%, var(--purple) 55%, var(--blue) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero-sub {
+            font-size: clamp(0.95rem, 2.5vw, 1.12rem);
+            color: var(--text-muted);
+            line-height: 1.85;
+            margin-bottom: 36px;
+        }
+        .hero-cta { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-bottom: 50px; }
+
+        /* Hero stat cards */
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            max-width: 420px;
+            margin: 0 auto;
+        }
+        .stat-card {
+            background: white;
+            border-radius: var(--radius-md);
+            padding: 18px 12px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+        }
+        .stat-num {
+            font-family: 'Nunito', sans-serif;
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--red);
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        .stat-lbl { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; }
+
+        /* Feature cards below hero */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            max-width: 950px;
+            margin: 0 auto;
+            padding: 10px 20px 70px;
+        }
+        .feat-card {
+            background: white;
+            border-radius: var(--radius-md);
+            padding: 28px 24px;
+            box-shadow: var(--shadow-sm);
+            text-align: center;
+            transition: all 0.3s var(--ease);
+        }
+        .feat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+        .feat-icon { font-size: 2.5rem; margin-bottom: 12px; }
+        .feat-title { font-size: 1.05rem; font-weight: 800; margin-bottom: 8px; }
+        .feat-desc { color: var(--text-muted); font-size: 0.88rem; line-height: 1.75; }
+
+        /* ================================================================
+           PAGE HEADER (shared)
+           ================================================================ */
+        .page-header { text-align: center; padding: 55px 20px 36px; }
+        .page-header h2 { font-size: clamp(1.7rem, 5vw, 2.7rem); font-weight: 900; margin-bottom: 10px; }
+        .page-header p  { color: var(--text-muted); font-size: 0.95rem; max-width: 480px; margin: 0 auto; }
+
+        /* ================================================================
+           SHAPES GRID PAGE
+           ================================================================ */
+        .shapes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+            gap: 22px;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px 70px;
+        }
+
+        .shape-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-md);
+            padding: 30px 22px 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s var(--ease);
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+            border: 2.5px solid transparent;
+        }
+        .shape-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 5px;
+            background: var(--c, var(--red));
+            border-radius: var(--radius-md) var(--radius-md) 0 0;
+        }
+        .shape-card:hover {
+            transform: translateY(-9px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--c, var(--red));
+        }
+
+        .shape-icon-wrap {
+            width: 96px; height: 96px;
+            margin: 0 auto 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--clight, #FFF0EE);
+            transition: all 0.35s var(--ease);
+            font-size: 3rem;
+        }
+        .shape-card:hover .shape-icon-wrap { transform: rotate(12deg) scale(1.14); }
+
+        .shape-name { font-family: 'Nunito', sans-serif; font-size: 1.35rem; font-weight: 900; margin-bottom: 4px; }
+        .shape-en   { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px; }
+
+        .preview-stats { display: flex; justify-content: center; gap: 18px; }
+        .ps { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+        .ps-num { font-family: 'Nunito', sans-serif; font-size: 1.25rem; font-weight: 900; }
+        .ps-lbl { font-size: 0.63rem; color: var(--text-muted); font-weight: 600; }
+
+        .card-action {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 9px 24px;
+            border: 2px solid var(--c, var(--red));
+            color: var(--c, var(--red));
+            background: transparent;
+            border-radius: 50px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 800;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.25s var(--ease);
+        }
+        .shape-card:hover .card-action { background: var(--c, var(--red)); color: white; }
+
+        /* ================================================================
+           DETAIL PAGE
+           ================================================================ */
+        .detail-wrap { max-width: 1000px; margin: 0 auto; padding: 38px 20px 70px; }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            border: 2px solid currentColor;
+            border-radius: 50px;
+            padding: 9px 20px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.25s var(--ease);
+            margin-bottom: 28px;
+        }
+        .back-btn:hover { opacity: 0.8; transform: translateX(-3px); }
+
+        /* Detail hero card */
+        .detail-hero {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 36px;
+            align-items: center;
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 40px 36px;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 28px;
+        }
+        @media (max-width: 680px) {
+            .detail-hero { grid-template-columns: 1fr; text-align: center; }
+        }
+
+        .detail-badge {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 50px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .detail-title {
+            font-size: clamp(1.9rem, 5vw, 2.9rem);
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 14px;
+        }
+        .detail-desc { color: var(--text-muted); font-size: 0.92rem; line-height: 1.85; }
+
+        /* 3D CSS Cube */
+        .scene { perspective: 520px; display: flex; align-items: center; justify-content: center; height: 200px; }
+
+        .cube3d {
+            width: 115px; height: 115px;
+            position: relative;
+            transform-style: preserve-3d;
+            animation: spinCube 9s linear infinite;
+        }
+        .cube3d:hover { animation-play-state: paused; cursor: grab; }
+        @keyframes spinCube {
+            from { transform: rotateX(-22deg) rotateY(0deg); }
+            to   { transform: rotateX(-22deg) rotateY(360deg); }
+        }
+        .cf {
+            position: absolute;
+            width: 115px; height: 115px;
+            border: 2px solid rgba(255,255,255,0.55);
+        }
+        .cf-front  { transform: translateZ(57.5px); }
+        .cf-back   { transform: rotateY(180deg) translateZ(57.5px); }
+        .cf-left   { transform: rotateY(-90deg) translateZ(57.5px); }
+        .cf-right  { transform: rotateY(90deg)  translateZ(57.5px); }
+        .cf-top    { transform: rotateX(90deg)  translateZ(57.5px); }
+        .cf-bottom { transform: rotateX(-90deg) translateZ(57.5px); }
+
+        .float-svg { animation: floatY 3.2s ease-in-out infinite; display: flex; align-items: center; justify-content: center; }
+        @keyframes floatY { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+
+        /* Section label */
+        .sec-label {
+            font-family: 'Nunito', sans-serif;
+            font-weight: 900;
+            font-size: 1.25rem;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Info stat cards */
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 28px; }
+        .info-card {
+            background: white;
+            border-radius: var(--radius-md);
+            padding: 24px 18px;
+            box-shadow: var(--shadow-sm);
+            text-align: center;
+            transition: all 0.25s var(--ease);
+        }
+        .info-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+        .info-icon  { font-size: 2.3rem; margin-bottom: 8px; }
+        .info-val   { font-family: 'Nunito', sans-serif; font-size: 2rem; font-weight: 900; margin-bottom: 4px; }
+        .info-lbl   { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
+
+        /* Formula cards */
+        .formula-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 18px; margin-bottom: 28px; }
+        .formula-card { background: white; border-radius: var(--radius-md); padding: 28px 24px; box-shadow: var(--shadow-sm); }
+        .fc-title { font-family: 'Nunito', sans-serif; font-size: 1.05rem; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+        .fc-formula {
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+        .fc-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.75; }
+
+        /* Calculator */
+        .calc-box { background: white; border-radius: var(--radius-md); padding: 28px 24px; box-shadow: var(--shadow-sm); margin-bottom: 28px; }
+        .calc-title { font-family: 'Nunito', sans-serif; font-size: 1.2rem; font-weight: 900; margin-bottom: 6px; }
+        .calc-hint  { color: var(--text-muted); font-size: 0.87rem; margin-bottom: 20px; }
+        .calc-fields { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
+        .calc-group { flex: 1; min-width: 115px; }
+        .calc-group label { display: block; font-size: 0.83rem; font-weight: 600; margin-bottom: 6px; }
+        .calc-input {
+            width: 100%;
+            padding: 11px 14px;
+            border: 2px solid #D0D8F0;
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            font-family: 'Poppins', sans-serif;
+            transition: border-color 0.2s;
+            outline: none;
+            background: #FAFBFF;
+        }
+        .calc-input:focus { border-color: var(--c, var(--red)); }
+        .calc-input.err   { border-color: #FF4757; }
+
+        .calc-run {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 50px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.98rem;
+            font-weight: 800;
+            color: white;
+            cursor: pointer;
+            transition: all 0.25s var(--ease);
+        }
+        .calc-run:hover { transform: translateY(-2px); filter: brightness(1.08); }
+
+        .calc-results { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 20px; }
+        .cr-box { background: var(--bg); border-radius: var(--radius-sm); padding: 16px; text-align: center; }
+        .cr-lbl { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 5px; }
+        .cr-val { font-family: 'Nunito', sans-serif; font-size: 1.45rem; font-weight: 900; }
+        .cr-unit { font-size: 0.68rem; color: var(--text-muted); margin-top: 3px; }
+
+        /* Net (jaring-jaring) section */
+        .net-box { background: white; border-radius: var(--radius-md); padding: 28px 24px; box-shadow: var(--shadow-sm); text-align: center; }
+        .net-title { font-family: 'Nunito', sans-serif; font-size: 1.2rem; font-weight: 900; margin-bottom: 20px; }
+        .net-svg { max-width: 100%; overflow: visible; }
+
+        /* ================================================================
+           QUIZ PAGE
+           ================================================================ */
+        .quiz-wrap { max-width: 720px; margin: 0 auto; padding: 30px 20px 70px; }
+
+        .progress-bar { width: 100%; height: 10px; background: #D0D8F0; border-radius: 5px; margin-bottom: 28px; overflow: hidden; }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--red), var(--purple));
+            border-radius: 5px;
+            transition: width 0.55s var(--ease);
+        }
+
+        .q-card { background: white; border-radius: var(--radius-md); padding: 32px 28px; box-shadow: var(--shadow-md); }
+        .q-num  { font-size: 0.83rem; color: var(--text-muted); font-weight: 600; margin-bottom: 10px; }
+        .q-text { font-family: 'Nunito', sans-serif; font-size: 1.15rem; font-weight: 800; line-height: 1.55; margin-bottom: 24px; }
+
+        .q-options { display: grid; gap: 11px; }
+        .q-opt {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #D0D8F0;
+            border-radius: var(--radius-sm);
+            background: white;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.22s var(--ease);
+        }
+        .q-opt:hover:not(:disabled) { border-color: var(--red); background: #FFF3F3; transform: translateX(5px); }
+        .q-opt:disabled { cursor: default; }
+
+        .opt-letter {
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            background: var(--bg);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.82rem;
+            font-weight: 900;
+            flex-shrink: 0;
+        }
+        .q-opt.correct { border-color: var(--green); background: #F0FFF9; color: #00875A; }
+        .q-opt.correct .opt-letter { background: var(--green); color: white; }
+        .q-opt.wrong   { border-color: #FF4757; background: #FFF0F0; color: #FF4757; }
+        .q-opt.wrong   .opt-letter { background: #FF4757; color: white; }
+
+        .q-feedback {
+            margin-top: 16px;
+            padding: 14px 18px;
+            border-radius: var(--radius-sm);
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            font-size: 0.92rem;
+            display: none;
+            align-items: flex-start;
+            gap: 8px;
+            line-height: 1.6;
+        }
+        .q-feedback.show { display: flex; }
+        .fb-correct { background: #EAFFF5; color: #00875A; border: 2px solid #55EFC4; }
+        .fb-wrong   { background: #FFF0F0; color: #CC0000; border: 2px solid #FF9595; }
+
+        .q-next {
+            width: 100%;
+            margin-top: 20px;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--red), var(--purple));
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s var(--ease);
+            display: none;
+        }
+        .q-next.show { display: block; }
+        .q-next:hover { transform: translateY(-2px); box-shadow: 0 8px 26px rgba(255,107,107,0.4); }
+
+        /* Result card */
+        .result-card { background: white; border-radius: var(--radius-lg); padding: 50px 30px; text-align: center; box-shadow: var(--shadow-lg); }
+        .result-emoji { font-size: 5rem; margin-bottom: 16px; animation: bounceIn 0.6s var(--ease); }
+        @keyframes bounceIn {
+            0%   { transform: scale(0) rotate(-15deg); }
+            60%  { transform: scale(1.25) rotate(5deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+        .result-title { font-family: 'Nunito', sans-serif; font-size: 1.9rem; font-weight: 900; margin-bottom: 8px; }
+        .result-pct {
+            font-family: 'Nunito', sans-serif;
+            font-size: 4.5rem;
+            font-weight: 900;
+            line-height: 1;
+            margin: 14px 0;
+            background: linear-gradient(135deg, var(--red), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .result-msg { color: var(--text-muted); font-size: 0.97rem; margin-bottom: 28px; }
+        .score-row { display: flex; justify-content: center; gap: 36px; margin: 0 0 30px; flex-wrap: wrap; }
+        .score-item .si-num { font-family: 'Nunito', sans-serif; font-size: 1.6rem; font-weight: 900; }
+        .score-item .si-lbl { font-size: 0.72rem; color: var(--text-muted); }
+        .result-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+        .retry-btn {
+            padding: 14px 34px;
+            background: linear-gradient(135deg, var(--red), var(--orange));
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s var(--ease);
+            box-shadow: 0 6px 22px rgba(255,107,107,0.38);
+        }
+        .retry-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(255,107,107,0.46); }
+
+        /* ================================================================
+           FOOTER
+           ================================================================ */
+        .footer {
+            text-align: center;
+            padding: 28px 20px;
+            color: var(--text-muted);
+            font-size: 0.83rem;
+            border-top: 1px solid #D0D8F0;
+        }
+
+        /* ================================================================
+           RESPONSIVE
+           ================================================================ */
+        @media (max-width: 580px) {
+            .shapes-grid { grid-template-columns: repeat(2, 1fr); }
+            .calc-results { grid-template-columns: 1fr; }
+            .q-card { padding: 22px 18px; }
+        }
+        @media (max-width: 380px) {
+            .shapes-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ================================================================
+     NAVIGATION BAR
+     ================================================================ -->
+<nav class="navbar">
+    <div class="nav-container">
+        <div class="nav-logo" onclick="showPage('home')">🎲 BangunRuang3D</div>
+        <div class="nav-tabs">
+            <button class="nav-btn active" id="nav-home"   onclick="showPage('home')">🏠 Beranda</button>
+            <button class="nav-btn"        id="nav-shapes" onclick="showPage('shapes')">📐 Bangun Ruang</button>
+            <button class="nav-btn"        id="nav-quiz"   onclick="showPage('quiz')">🎯 Kuis</button>
+        </div>
+    </div>
+</nav>
+
+<!-- ================================================================
+     HOME PAGE
+     ================================================================ -->
+<section id="page-home" class="page-section active">
+    <div class="hero">
+        <!-- Decorative blobs -->
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+        <div class="blob blob-4"></div>
+
+        <div class="hero-content">
+            <div class="hero-badge">✨ Matematika Seru untuk SD, SMP & SMA</div>
+            <h1 class="hero-title">Belajar Bangun<br>Ruang 3D 🎲</h1>
+            <p class="hero-sub">
+                Jelajahi dunia bangun ruang tiga dimensi dengan cara yang seru dan interaktif!
+                Pelajari rumus, sifat-sifat, dan uji pemahamanmu lewat kuis seru.
+            </p>
+            <div class="hero-cta">
+                <button class="btn-primary" onclick="showPage('shapes')">🚀 Mulai Belajar</button>
+                <button class="btn-outline" onclick="showPage('quiz')">🎯 Coba Kuis</button>
+            </div>
+            <div class="hero-stats">
+                <div class="stat-card"><div class="stat-num">6</div><div class="stat-lbl">Bangun Ruang</div></div>
+                <div class="stat-card"><div class="stat-num">12</div><div class="stat-lbl">Rumus Penting</div></div>
+                <div class="stat-card"><div class="stat-num">5</div><div class="stat-lbl">Soal Kuis</div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="features">
+        <div class="feat-card">
+            <div class="feat-icon">📊</div>
+            <div class="feat-title">Rumus Lengkap</div>
+            <div class="feat-desc">Volume dan luas permukaan setiap bangun ruang tersaji dengan jelas dan mudah dipahami.</div>
+        </div>
+        <div class="feat-card">
+            <div class="feat-icon">🧮</div>
+            <div class="feat-title">Kalkulator Interaktif</div>
+            <div class="feat-desc">Hitung langsung volume dan luas permukaan dengan memasukkan ukuran yang kamu inginkan!</div>
+        </div>
+        <div class="feat-card">
+            <div class="feat-icon">📋</div>
+            <div class="feat-title">Jaring-Jaring</div>
+            <div class="feat-desc">Visualisasi jaring-jaring setiap bangun ruang untuk memudahkan pemahamanmu.</div>
+        </div>
+        <div class="feat-card">
+            <div class="feat-icon">🎯</div>
+            <div class="feat-title">Kuis Seru</div>
+            <div class="feat-desc">Uji pemahamanmu dengan 5 soal pilihan ganda dan dapatkan nilaimu di akhir kuis!</div>
+        </div>
+    </div>
+</section>
+
+<!-- ================================================================
+     SHAPES LIST PAGE
+     ================================================================ -->
+<section id="page-shapes" class="page-section">
+    <div class="page-header">
+        <h2>📐 Daftar Bangun Ruang</h2>
+        <p>Pilih bangun ruang yang ingin kamu pelajari. Klik untuk melihat detail lengkap!</p>
+    </div>
+    <div class="shapes-grid" id="shapes-grid">
+        <!-- Diisi oleh JavaScript -->
+    </div>
+</section>
+
+<!-- ================================================================
+     SHAPE DETAIL PAGE (dinamis)
+     ================================================================ -->
+<section id="page-detail" class="page-section">
+    <div class="detail-wrap" id="detail-content">
+        <!-- Diisi oleh JavaScript -->
+    </div>
+</section>
+
+<!-- ================================================================
+     QUIZ PAGE
+     ================================================================ -->
+<section id="page-quiz" class="page-section">
+    <div class="quiz-wrap">
+        <div class="page-header" style="padding-top:10px;">
+            <h2>🎯 Kuis Bangun Ruang</h2>
+            <p>Jawab 5 pertanyaan berikut untuk menguji pemahamanmu!</p>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="quiz-progress" style="width:0%"></div>
+        </div>
+        <div id="quiz-content"><!-- Diisi oleh JavaScript --></div>
+    </div>
+</section>
+
+<!-- ================================================================
+     FOOTER
+     ================================================================ -->
+<footer class="footer">
+    🎲 BangunRuang3D — Belajar Matematika itu Seru! &nbsp;|&nbsp; Dibuat untuk Siswa SMP &amp; SMA Indonesia
+</footer>
+
+<!-- ================================================================
+     JAVASCRIPT — Data, Logika, dan Interaktivitas
+     ================================================================ -->
+<script>
+/* ================================================================
+   DATA — Informasi lengkap setiap bangun ruang
+   ================================================================ */
+const SHAPES = [
+    {
+        id: 'kubus', name: 'Kubus', nameEn: 'Cube',
+        emoji: '📦', color: '#FF6B6B', colorLight: '#FFF0EE',
+        sisi: 6, rusuk: 12, titikSudut: 8,
+        volFormula: 'V = s³',
+        lpFormula:  'LP = 6s²',
+        volDesc:    's = panjang rusuk (cm)',
+        lpDesc:     's = panjang rusuk (cm)',
+        desc: 'Kubus adalah bangun ruang yang memiliki 6 sisi berbentuk persegi yang sama besar. Semua rusuknya memiliki panjang yang sama, dan setiap sudutnya adalah sudut siku-siku (90°).',
+        params: [{ id:'s', label:'Panjang Rusuk (s)', unit:'cm' }],
+        calcVol: v => Math.pow(v.s, 3),
+        calcLP:  v => 6 * Math.pow(v.s, 2),
+        viz: 'cube',
+        net: 'cube'
+    },
+    {
+        id: 'balok', name: 'Balok', nameEn: 'Rectangular Prism',
+        emoji: '🧱', color: '#FF9F43', colorLight: '#FFF5EE',
+        sisi: 6, rusuk: 12, titikSudut: 8,
+        volFormula: 'V = p × l × t',
+        lpFormula:  'LP = 2(pl + pt + lt)',
+        volDesc:    'p = panjang, l = lebar, t = tinggi',
+        lpDesc:     'p = panjang, l = lebar, t = tinggi',
+        desc: 'Balok adalah bangun ruang yang memiliki 6 sisi berbentuk persegi panjang. Sisi-sisi yang berhadapan memiliki bentuk dan ukuran yang sama.',
+        params: [
+            { id:'p', label:'Panjang (p)', unit:'cm' },
+            { id:'l', label:'Lebar (l)',   unit:'cm' },
+            { id:'t', label:'Tinggi (t)',  unit:'cm' }
+        ],
+        calcVol: v => v.p * v.l * v.t,
+        calcLP:  v => 2 * (v.p*v.l + v.p*v.t + v.l*v.t),
+        viz: 'balok',
+        net: 'balok'
+    },
+    {
+        id: 'tabung', name: 'Tabung', nameEn: 'Cylinder',
+        emoji: '🥫', color: '#4ECDC4', colorLight: '#EDFFFE',
+        sisi: 3, rusuk: 2, titikSudut: 0,
+        volFormula: 'V = π × r² × t',
+        lpFormula:  'LP = 2πr(r + t)',
+        volDesc:    'r = jari-jari alas, t = tinggi',
+        lpDesc:     'r = jari-jari alas, t = tinggi',
+        desc: 'Tabung adalah bangun ruang yang memiliki dua alas berbentuk lingkaran yang sejajar dan kongruen, dihubungkan oleh selimut berbentuk persegi panjang yang dilengkungkan.',
+        params: [
+            { id:'r', label:'Jari-jari (r)', unit:'cm' },
+            { id:'t', label:'Tinggi (t)',    unit:'cm' }
+        ],
+        calcVol: v => Math.PI * v.r * v.r * v.t,
+        calcLP:  v => 2 * Math.PI * v.r * (v.r + v.t),
+        viz: 'tabung',
+        net: 'tabung'
+    },
+    {
+        id: 'bola', name: 'Bola', nameEn: 'Sphere',
+        emoji: '⚽', color: '#74B9FF', colorLight: '#EEF7FF',
+        sisi: 1, rusuk: 0, titikSudut: 0,
+        volFormula: 'V = (4/3) × π × r³',
+        lpFormula:  'LP = 4 × π × r²',
+        volDesc:    'r = jari-jari bola',
+        lpDesc:     'r = jari-jari bola',
+        desc: 'Bola adalah bangun ruang yang dibatasi oleh satu bidang lengkung. Semua titik pada permukaan bola berjarak sama dari titik pusat bola.',
+        params: [{ id:'r', label:'Jari-jari (r)', unit:'cm' }],
+        calcVol: v => (4/3) * Math.PI * Math.pow(v.r, 3),
+        calcLP:  v => 4 * Math.PI * v.r * v.r,
+        viz: 'bola',
+        net: 'bola'
+    },
+    {
+        id: 'kerucut', name: 'Kerucut', nameEn: 'Cone',
+        emoji: '🍦', color: '#C77DFF', colorLight: '#F8EEFF',
+        sisi: 2, rusuk: 1, titikSudut: 1,
+        volFormula: 'V = (1/3) × π × r² × t',
+        lpFormula:  'LP = πr(r + s)',
+        volDesc:    'r = jari-jari alas, t = tinggi',
+        lpDesc:     'r = jari-jari, s = garis pelukis (√r²+t²)',
+        desc: 'Kerucut adalah bangun ruang yang memiliki satu alas berbentuk lingkaran dan satu titik puncak. Garis yang menghubungkan puncak dengan tepi alas disebut garis pelukis.',
+        params: [
+            { id:'r', label:'Jari-jari (r)', unit:'cm' },
+            { id:'t', label:'Tinggi (t)',    unit:'cm' }
+        ],
+        calcVol: v => (1/3) * Math.PI * v.r * v.r * v.t,
+        calcLP:  v => {
+            const s = Math.sqrt(v.r*v.r + v.t*v.t);
+            return Math.PI * v.r * (v.r + s);
+        },
+        viz: 'kerucut',
+        net: 'kerucut'
+    },
+    {
+        id: 'limas', name: 'Limas', nameEn: 'Square Pyramid',
+        emoji: '🔺', color: '#55EFC4', colorLight: '#EDFFF9',
+        sisi: 5, rusuk: 8, titikSudut: 5,
+        volFormula: 'V = (1/3) × s² × t',
+        lpFormula:  'LP = s² + 2s × tp',
+        volDesc:    's = sisi alas, t = tinggi limas',
+        lpDesc:     's = sisi alas, tp = tinggi sisi tegak (apotema)',
+        desc: 'Limas segi empat adalah bangun ruang yang memiliki satu alas berbentuk persegi dan 4 sisi tegak berbentuk segitiga yang bertemu pada satu titik puncak.',
+        params: [
+            { id:'s', label:'Sisi Alas (s)', unit:'cm' },
+            { id:'t', label:'Tinggi (t)',    unit:'cm' }
+        ],
+        calcVol: v => (1/3) * v.s * v.s * v.t,
+        calcLP:  v => {
+            const tp = Math.sqrt((v.s/2)*(v.s/2) + v.t*v.t);
+            return v.s*v.s + 4 * (0.5 * v.s * tp);
+        },
+        viz: 'limas',
+        net: 'limas'
+    }
+];
+
+/* ================================================================
+   QUIZ DATA — 5 soal pilihan ganda
+   ================================================================ */
+const QUIZ = [
+    {
+        q: 'Berapa jumlah sisi (bidang) pada sebuah kubus?',
+        opts: ['4 sisi', '5 sisi', '6 sisi', '8 sisi'],
+        ans: 2,
+        exp: 'Kubus memiliki 6 sisi berbentuk persegi: atas, bawah, kiri, kanan, depan, dan belakang!'
+    },
+    {
+        q: 'Rumus volume tabung adalah...',
+        opts: ['V = s³', 'V = πr²t', 'V = ⅓πr²t', 'V = ⁴⁄₃πr³'],
+        ans: 1,
+        exp: 'Volume tabung = πr²t, di mana r adalah jari-jari lingkaran alas dan t adalah tinggi tabung!'
+    },
+    {
+        q: 'Bangun ruang yang semua titik permukaannya berjarak sama dari pusat adalah...',
+        opts: ['Tabung', 'Kerucut', 'Bola', 'Limas'],
+        ans: 2,
+        exp: 'Bola! Semua titik pada permukaan bola berjarak sama dari titik pusatnya — inilah yang membuatnya sempurna!'
+    },
+    {
+        q: 'Limas segi empat memiliki berapa rusuk?',
+        opts: ['6 rusuk', '8 rusuk', '10 rusuk', '12 rusuk'],
+        ans: 1,
+        exp: 'Limas segi empat memiliki 8 rusuk: 4 rusuk alas persegi + 4 rusuk tegak yang menuju puncak!'
+    },
+    {
+        q: 'Jika kubus memiliki panjang rusuk 5 cm, berapa volumenya?',
+        opts: ['25 cm³', '75 cm³', '100 cm³', '125 cm³'],
+        ans: 3,
+        exp: 'Volume kubus = s³ = 5³ = 5 × 5 × 5 = 125 cm³. Mudah kan? 😊'
+    }
+];
+
+/* ================================================================
+   QUIZ STATE
+   ================================================================ */
+let qIdx = 0, qScore = 0, qAnswered = false;
+
+/* ================================================================
+   NAVIGATION — Tampilkan halaman tertentu
+   ================================================================ */
+function showPage(id) {
+    document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+    document.getElementById('page-' + id).classList.add('active');
+
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    const navTarget = id === 'detail' ? 'shapes' : id;
+    const nb = document.getElementById('nav-' + navTarget);
+    if (nb) nb.classList.add('active');
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (id === 'quiz') initQuiz();
+}
+
+/* ================================================================
+   SHAPES GRID — Buat kartu untuk setiap bangun ruang
+   ================================================================ */
+function buildGrid() {
+    const grid = document.getElementById('shapes-grid');
+    grid.innerHTML = SHAPES.map(sh => `
+        <div class="shape-card" style="--c:${sh.color};--clight:${sh.colorLight};" onclick="showDetail('${sh.id}')">
+            <div class="shape-icon-wrap" style="background:${sh.colorLight};">${sh.emoji}</div>
+            <div class="shape-name">${sh.name}</div>
+            <div class="shape-en">${sh.nameEn}</div>
+            <div class="preview-stats">
+                <div class="ps"><span class="ps-num" style="color:${sh.color}">${sh.sisi}</span><span class="ps-lbl">Sisi</span></div>
+                <div class="ps"><span class="ps-num" style="color:${sh.color}">${sh.rusuk}</span><span class="ps-lbl">Rusuk</span></div>
+                <div class="ps"><span class="ps-num" style="color:${sh.color}">${sh.titikSudut}</span><span class="ps-lbl">Titik Sudut</span></div>
+            </div>
+            <div class="card-action" style="--c:${sh.color};">Pelajari →</div>
+        </div>
+    `).join('');
+}
+
+/* ================================================================
+   SHAPE DETAIL — Tampilkan halaman detail bangun ruang
+   ================================================================ */
+function showDetail(id) {
+    const sh = SHAPES.find(s => s.id === id);
+    if (!sh) return;
+
+    const c = sh.color;
+    const cL = sh.colorLight;
+
+    document.getElementById('detail-content').innerHTML = `
+        <button class="back-btn" style="color:${c};" onclick="showPage('shapes')">← Kembali ke Daftar</button>
+
+        <div class="detail-hero">
+            <div>
+                <span class="detail-badge" style="background:${cL};color:${c};">${sh.nameEn}</span>
+                <h2 class="detail-title" style="color:${c};">${sh.emoji} ${sh.name}</h2>
+                <p class="detail-desc">${sh.desc}</p>
+            </div>
+            <div>${buildViz(sh)}</div>
+        </div>
+
+        <div class="sec-label">📊 Sifat-Sifat ${sh.name}</div>
+        <div class="info-grid">
+            <div class="info-card">
+                <div class="info-icon">🔲</div>
+                <div class="info-val" style="color:${c};">${sh.sisi}</div>
+                <div class="info-lbl">Sisi / Bidang</div>
+            </div>
+            <div class="info-card">
+                <div class="info-icon">📏</div>
+                <div class="info-val" style="color:${c};">${sh.rusuk}</div>
+                <div class="info-lbl">Rusuk</div>
+            </div>
+            <div class="info-card">
+                <div class="info-icon">📍</div>
+                <div class="info-val" style="color:${c};">${sh.titikSudut}</div>
+                <div class="info-lbl">Titik Sudut</div>
+            </div>
+        </div>
+
+        <div class="sec-label">📐 Rumus ${sh.name}</div>
+        <div class="formula-grid">
+            <div class="formula-card">
+                <div class="fc-title" style="color:${c};">🧊 Volume</div>
+                <div class="fc-formula" style="color:${c};">${sh.volFormula}</div>
+                <div class="fc-desc"><strong>Keterangan:</strong><br>${sh.volDesc}</div>
+            </div>
+            <div class="formula-card">
+                <div class="fc-title" style="color:${c};">🎨 Luas Permukaan</div>
+                <div class="fc-formula" style="color:${c};">${sh.lpFormula}</div>
+                <div class="fc-desc"><strong>Keterangan:</strong><br>${sh.lpDesc}</div>
+            </div>
+        </div>
+
+        <div class="calc-box">
+            <div class="calc-title">🧮 Kalkulator Interaktif</div>
+            <p class="calc-hint">Masukkan ukuran untuk menghitung volume dan luas permukaan ${sh.name}!</p>
+            <div class="calc-fields" id="calc-fields">
+                ${sh.params.map(p => `
+                    <div class="calc-group">
+                        <label>${p.label}</label>
+                        <input type="number" class="calc-input" id="ci-${p.id}" placeholder="Masukkan nilai" min="0.1" step="0.1">
+                    </div>
+                `).join('')}
+            </div>
+            <button class="calc-run" style="background:${c};" onclick="runCalc('${sh.id}')">🔢 Hitung Sekarang!</button>
+            <div class="calc-results" id="calc-results" style="display:none;">
+                <div class="cr-box">
+                    <div class="cr-lbl">📦 Volume</div>
+                    <div class="cr-val" id="cr-vol" style="color:${c};">—</div>
+                    <div class="cr-unit">cm³</div>
+                </div>
+                <div class="cr-box">
+                    <div class="cr-lbl">🎨 Luas Permukaan</div>
+                    <div class="cr-val" id="cr-lp" style="color:${c};">—</div>
+                    <div class="cr-unit">cm²</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="net-box">
+            <div class="net-title">📋 Jaring-Jaring ${sh.name}</div>
+            ${buildNet(sh)}
+        </div>
+    `;
+    showPage('detail');
+}
+
+/* ================================================================
+   3D VISUALIZATION — CSS 3D cube atau SVG untuk shapes lain
+   ================================================================ */
+function buildViz(sh) {
+    const c = sh.color;
+    if (sh.viz === 'cube') {
+        const faces = ['front','back','left','right','top','bottom'];
+        const alphas = [0.88, 0.55, 0.70, 0.75, 0.80, 0.55];
+        return `
+        <div class="scene">
+            <div class="cube3d" title="Hover untuk pause">
+                ${faces.map((f,i) => `<div class="cf cf-${f}" style="background:${c};opacity:${alphas[i]};"></div>`).join('')}
+            </div>
+        </div>
+        <div style="text-align:center;font-size:0.72rem;color:var(--text-muted);margin-top:6px;">🖱️ Hover untuk pause</div>`;
+    }
+
+    const svgs = {
+        balok: `<svg viewBox="0 0 180 150" width="170" class="float-svg">
+            <polygon points="30,100 130,100 130,35 30,35" fill="${c}" opacity="0.85"/>
+            <polygon points="130,100 160,72 160,7 130,35" fill="${c}" opacity="0.58"/>
+            <polygon points="30,35 130,35 160,7 60,7" fill="${c}" opacity="0.70"/>
+            <line x1="30" y1="100" x2="60" y2="72" stroke="rgba(255,255,255,0.7)" stroke-width="1.5"/>
+            <line x1="60" y1="72" x2="160" y2="72" stroke="rgba(255,255,255,0.7)" stroke-width="1.5"/>
+            <line x1="60" y1="72" x2="60" y2="7" stroke="rgba(255,255,255,0.7)" stroke-width="1.5"/>
+        </svg>`,
+
+        tabung: `<svg viewBox="0 0 160 180" width="145" class="float-svg">
+            <rect x="20" y="45" width="120" height="115" fill="${c}" opacity="0.78"/>
+            <ellipse cx="80" cy="160" rx="60" ry="20" fill="${c}" opacity="0.65"/>
+            <ellipse cx="80" cy="45"  rx="60" ry="20" fill="${c}" opacity="0.97"/>
+            <line x1="20" y1="45" x2="20" y2="160" stroke="rgba(255,255,255,0.45)" stroke-width="1.5"/>
+            <line x1="140" y1="45" x2="140" y2="160" stroke="rgba(255,255,255,0.45)" stroke-width="1.5"/>
+        </svg>`,
+
+        bola: `<svg viewBox="0 0 165 165" width="155" class="float-svg">
+            <circle cx="82" cy="82" r="68" fill="${c}" opacity="0.82"/>
+            <ellipse cx="82" cy="82" rx="68" ry="22" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2"/>
+            <ellipse cx="82" cy="82" rx="22" ry="68" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2"/>
+            <ellipse cx="65" cy="60" rx="20" ry="12" fill="rgba(255,255,255,0.28)" transform="rotate(-30,65,60)"/>
+        </svg>`,
+
+        kerucut: `<svg viewBox="0 0 160 180" width="145" class="float-svg">
+            <polygon points="80,12 18,148 142,148" fill="${c}" opacity="0.85"/>
+            <ellipse cx="80" cy="148" rx="62" ry="20" fill="${c}" opacity="0.65"/>
+            <line x1="80" y1="12" x2="18" y2="148" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
+            <line x1="80" y1="12" x2="142" y2="148" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
+        </svg>`,
+
+        limas: `<svg viewBox="0 0 180 175" width="165" class="float-svg">
+            <polygon points="90,12 18,148 162,148" fill="${c}" opacity="0.85"/>
+            <polygon points="90,12 162,148 178,118" fill="${c}" opacity="0.58"/>
+            <polygon points="18,148 162,148 178,118 34,118" fill="${c}" opacity="0.72"/>
+            <line x1="90" y1="12" x2="18" y2="148" stroke="rgba(255,255,255,0.6)" stroke-width="2"/>
+            <line x1="90" y1="12" x2="162" y2="148" stroke="rgba(255,255,255,0.6)" stroke-width="2"/>
+            <line x1="90" y1="12" x2="178" y2="118" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-dasharray="5"/>
+        </svg>`
+    };
+
+    return `<div style="display:flex;align-items:center;justify-content:center;height:200px;">${svgs[sh.viz] || sh.emoji}</div>`;
+}
+
+/* ================================================================
+   NET DIAGRAMS — SVG jaring-jaring setiap bangun ruang
+   ================================================================ */
+function buildNet(sh) {
+    const c = sh.color;
+    const cl = sh.colorLight;
+    const nets = {
+        cube: `<svg viewBox="0 0 300 250" width="300" class="net-svg">
+            <g fill="${c}" stroke="${c}" stroke-width="2">
+                <rect x="90" y="10"  width="60" height="60" fill-opacity="0.25"/>
+                <rect x="90" y="70"  width="60" height="60" fill-opacity="0.50"/>
+                <rect x="30" y="70"  width="60" height="60" fill-opacity="0.20"/>
+                <rect x="90" y="130" width="60" height="60" fill-opacity="0.35"/>
+                <rect x="150" y="70" width="60" height="60" fill-opacity="0.20"/>
+                <rect x="210" y="70" width="60" height="60" fill-opacity="0.15"/>
+            </g>
+            <g font-size="11" font-family="Nunito" fill="${c}" text-anchor="middle">
+                <text x="120" y="44">Atas</text>
+                <text x="120" y="104">Depan</text>
+                <text x="60"  y="104">Kiri</text>
+                <text x="120" y="164">Bawah</text>
+                <text x="180" y="104">Kanan</text>
+                <text x="240" y="104">Belakang</text>
+            </g>
+        </svg>`,
+
+        balok: `<svg viewBox="0 0 360 260" width="320" class="net-svg">
+            <g fill="${c}" stroke="${c}" stroke-width="2">
+                <rect x="100" y="10"  width="90" height="55" fill-opacity="0.25"/>
+                <rect x="100" y="65"  width="90" height="75" fill-opacity="0.50"/>
+                <rect x="10"  y="65"  width="90" height="75" fill-opacity="0.20"/>
+                <rect x="100" y="140" width="90" height="55" fill-opacity="0.35"/>
+                <rect x="190" y="65"  width="90" height="75" fill-opacity="0.20"/>
+                <rect x="280" y="65"  width="75" height="75" fill-opacity="0.15"/>
+            </g>
+            <g font-size="11" font-family="Nunito" fill="${c}" text-anchor="middle">
+                <text x="145" y="41">Atas</text>
+                <text x="145" y="106">Depan</text>
+                <text x="55"  y="106">Kiri</text>
+                <text x="145" y="172">Bawah</text>
+                <text x="235" y="106">Kanan</text>
+                <text x="318" y="106">Belakang</text>
+            </g>
+        </svg>`,
+
+        tabung: `<svg viewBox="0 0 340 200" width="320" class="net-svg">
+            <ellipse cx="65"  cy="100" rx="52" ry="52" fill="${c}" fill-opacity="0.25" stroke="${c}" stroke-width="2"/>
+            <rect x="117" y="48" width="130" height="104" fill="${c}" fill-opacity="0.45" stroke="${c}" stroke-width="2"/>
+            <ellipse cx="295" cy="100" rx="52" ry="52" fill="${c}" fill-opacity="0.25" stroke="${c}" stroke-width="2"/>
+            <g font-size="11" font-family="Nunito" fill="${c}" text-anchor="middle">
+                <text x="65"  y="105">Alas</text>
+                <text x="182" y="105">Selimut</text>
+                <text x="295" y="105">Tutup</text>
+            </g>
+        </svg>`,
+
+        bola: `<svg viewBox="0 0 340 200" width="320" class="net-svg">
+            <circle cx="170" cy="110" r="55" fill="${c}" fill-opacity="0.25" stroke="${c}" stroke-width="2"/>
+            <ellipse cx="170" cy="110" rx="55" ry="16" fill="none" stroke="${c}" stroke-width="1.5" stroke-dasharray="5"/>
+            <text x="170" y="42" text-anchor="middle" font-size="13" font-family="Nunito" fill="${c}" font-weight="bold">Bola tidak memiliki jaring-jaring</text>
+            <text x="170" y="62" text-anchor="middle" font-size="10" font-family="Poppins" fill="${sh.color}" opacity="0.7">Permukaannya berupa bidang lengkung menerus</text>
+        </svg>`,
+
+        kerucut: `<svg viewBox="0 0 340 230" width="320" class="net-svg">
+            <path d="M170,20 L42,200 A132,132 0 0,0 298,200 Z" fill="${c}" fill-opacity="0.35" stroke="${c}" stroke-width="2"/>
+            <ellipse cx="170" cy="200" rx="128" ry="38" fill="${c}" fill-opacity="0.22" stroke="${c}" stroke-width="2" stroke-dasharray="7 3"/>
+            <g font-size="11" font-family="Nunito" fill="${c}" text-anchor="middle">
+                <text x="170" y="135">Selimut Kerucut</text>
+                <text x="170" y="215">Alas (Lingkaran)</text>
+            </g>
+        </svg>`,
+
+        limas: `<svg viewBox="0 0 330 270" width="300" class="net-svg">
+            <rect x="110" y="90" width="110" height="110" fill="${c}" fill-opacity="0.38" stroke="${c}" stroke-width="2"/>
+            <polygon points="165,10 110,90 220,90" fill="${c}" fill-opacity="0.22" stroke="${c}" stroke-width="2"/>
+            <polygon points="165,260 110,200 220,200" fill="${c}" fill-opacity="0.22" stroke="${c}" stroke-width="2"/>
+            <polygon points="28,145 110,90 110,200" fill="${c}" fill-opacity="0.18" stroke="${c}" stroke-width="2"/>
+            <polygon points="302,145 220,90 220,200" fill="${c}" fill-opacity="0.18" stroke="${c}" stroke-width="2"/>
+            <g font-size="11" font-family="Nunito" fill="${c}" text-anchor="middle">
+                <text x="165" y="150">Alas</text>
+                <text x="165" y="56">Sisi Tegak</text>
+                <text x="165" y="240">Sisi Tegak</text>
+                <text x="57"  y="150">Sisi Tegak</text>
+                <text x="273" y="150">Sisi Tegak</text>
+            </g>
+        </svg>`
+    };
+    return nets[sh.net] || '<p style="color:var(--text-muted)">Tidak tersedia.</p>';
+}
+
+/* ================================================================
+   CALCULATOR — Hitung volume dan luas permukaan
+   ================================================================ */
+function runCalc(id) {
+    const sh = SHAPES.find(s => s.id === id);
+    if (!sh) return;
+
+    const vals = {};
+    let ok = true;
+
+    sh.params.forEach(p => {
+        const el = document.getElementById('ci-' + p.id);
+        const v  = parseFloat(el.value);
+        el.classList.remove('err');
+        if (!el.value || isNaN(v) || v <= 0) {
+            el.classList.add('err');
+            ok = false;
+        } else {
+            vals[p.id] = v;
+        }
+    });
+
+    if (!ok) { alert('⚠️ Masukkan nilai yang valid (angka positif) untuk semua ukuran!'); return; }
+
+    const vol = sh.calcVol(vals);
+    const lp  = sh.calcLP(vals);
+
+    const fmt = n => Number.isInteger(n) ? n : parseFloat(n.toFixed(3));
+
+    document.getElementById('cr-vol').textContent = fmt(vol);
+    document.getElementById('cr-lp').textContent  = fmt(lp);
+    document.getElementById('calc-results').style.display = 'grid';
+}
+
+/* ================================================================
+   QUIZ — Inisialisasi, render soal, cek jawaban, tampilkan hasil
+   ================================================================ */
+function initQuiz() {
+    qIdx = 0; qScore = 0; qAnswered = false;
+    renderQ();
+}
+
+function renderQ() {
+    const box = document.getElementById('quiz-content');
+    document.getElementById('quiz-progress').style.width = (qIdx / QUIZ.length * 100) + '%';
+
+    if (qIdx >= QUIZ.length) { showResult(); return; }
+
+    const q = QUIZ[qIdx];
+    const letters = ['A','B','C','D'];
+
+    box.innerHTML = `
+        <div class="q-card">
+            <div class="q-num">Pertanyaan ${qIdx+1} dari ${QUIZ.length}</div>
+            <div class="q-text">${q.q}</div>
+            <div class="q-options">
+                ${q.opts.map((o,i) => `
+                    <button class="q-opt" id="qo-${i}" onclick="pickAnswer(${i})">
+                        <span class="opt-letter">${letters[i]}</span>${o}
+                    </button>`).join('')}
+            </div>
+            <div class="q-feedback" id="qfb"></div>
+            <button class="q-next" id="qnext" onclick="nextQ()">
+                ${qIdx < QUIZ.length-1 ? 'Pertanyaan Berikutnya →' : '🏆 Lihat Hasil!'}
+            </button>
+        </div>`;
+    qAnswered = false;
+}
+
+function pickAnswer(i) {
+    if (qAnswered) return;
+    qAnswered = true;
+
+    const q = QUIZ[qIdx];
+    const opts = document.querySelectorAll('.q-opt');
+    const fb   = document.getElementById('qfb');
+    const nxt  = document.getElementById('qnext');
+
+    opts.forEach(o => o.disabled = true);
+    opts[q.ans].classList.add('correct');
+
+    if (i === q.ans) {
+        qScore++;
+        fb.textContent = '✅ ' + q.exp;
+        fb.className   = 'q-feedback show fb-correct';
+    } else {
+        opts[i].classList.add('wrong');
+        fb.textContent = '❌ Jawaban kurang tepat. ' + q.exp;
+        fb.className   = 'q-feedback show fb-wrong';
+    }
+    nxt.classList.add('show');
+}
+
+function nextQ() { qIdx++; renderQ(); }
+
+function showResult() {
+    const pct = Math.round(qScore / QUIZ.length * 100);
+    let emoji, msg;
+    if (pct >= 80) { emoji='🏆'; msg='Luar biasa! Kamu sangat memahami materi bangun ruang!'; }
+    else if (pct >= 60) { emoji='👍'; msg='Bagus! Terus belajar untuk hasil yang lebih baik!'; }
+    else if (pct >= 40) { emoji='📚'; msg='Cukup baik! Pelajari lagi materi yang belum dikuasai ya!'; }
+    else { emoji='💪'; msg='Semangat! Pelajari materinya lagi dan coba sekali lagi!'; }
+
+    document.getElementById('quiz-progress').style.width = '100%';
+    document.getElementById('quiz-content').innerHTML = `
+        <div class="result-card">
+            <div class="result-emoji">${emoji}</div>
+            <div class="result-title">Kuis Selesai!</div>
+            <div class="result-pct">${pct}%</div>
+            <p class="result-msg">${msg}</p>
+            <div class="score-row">
+                <div class="score-item"><div class="si-num" style="color:#55EFC4;">${qScore}</div><div class="si-lbl">✅ Benar</div></div>
+                <div class="score-item"><div class="si-num" style="color:#FF6B6B;">${QUIZ.length-qScore}</div><div class="si-lbl">❌ Salah</div></div>
+                <div class="score-item"><div class="si-num" style="color:#74B9FF;">${QUIZ.length}</div><div class="si-lbl">📝 Total</div></div>
+            </div>
+            <div class="result-actions">
+                <button class="retry-btn" onclick="initQuiz()">🔄 Coba Lagi</button>
+                <button class="btn-outline" onclick="showPage('shapes')">📐 Pelajari Lagi</button>
+            </div>
+        </div>`;
+}
+
+/* ================================================================
+   INIT — Jalankan saat halaman dimuat
+   ================================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+    buildGrid();
+    initQuiz();
+});
+</script>
+
+</body>
+</html>
